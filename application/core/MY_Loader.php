@@ -42,7 +42,6 @@ class MY_Loader extends CI_Loader {
       } else {
         show_error ("Could not autoload object of type '$type' ($arg) for splint $splint");
       }
-      $this->ci_autoloader($splint_path);
       return true;
     }
   }
