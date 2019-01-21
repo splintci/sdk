@@ -31,4 +31,5 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 /tests/results/
 
 application/splints/*
+application/controllers/SplintTest.php
 

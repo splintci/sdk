@@ -21,6 +21,8 @@ class MY_Loader extends CI_Loader {
         $this->library("../splints/$splint/libraries/" . substr($autoload, 1), $params, $alias);
       } elseif (substr($autoload, 0, 1) == "*") {
         $this->model("../splints/$splint/models/" . substr($autoload, 1));
+      } elseif (substr($autoload, 0, 1) == "-") {
+        $this->view("../splints/$splint/views/" . substr($autoload, 1));
       }
       return true;
     }
@@ -38,7 +40,7 @@ class MY_Loader extends CI_Loader {
       } elseif ($type == 'helper') {
         $this->helper($arg);
       } elseif($type == 'view') {
-        $this->view($arg);
+        $this->view("../splints/$splint/views/$arg");
       } else {
         show_error ("Could not autoload object of type '$type' ($arg) for splint $splint");
       }
