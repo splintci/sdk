@@ -23,6 +23,10 @@ class MY_Loader extends CI_Loader {
         $this->model("../splints/$splint/models/" . substr($autoload, 1));
       } elseif (substr($autoload, 0, 1) == "-") {
         $this->view("../splints/$splint/views/" . substr($autoload, 1));
+      } elseif (substr($autoload, 0, 1) == "@") {
+        $this->config("../splints/$splint/config/" . substr($autoload, 1));
+      } elseif (substr($autoload, 0, 1) == "%") {
+        $this->helper("../splints/$splint/helpers/" . substr($autoload, 1));
       }
       return true;
     }
@@ -36,9 +40,9 @@ class MY_Loader extends CI_Loader {
       } elseif ($type == 'model') {
         $this->model("../splints/$splint/models/$arg");
       } elseif ($type == 'config') {
-        $this->config($arg);
+        $this->config("../splints/$splint/config/$arg");
       } elseif ($type == 'helper') {
-        $this->helper($arg);
+        $this->helper("../splints/$splint/helpers/$arg");
       } elseif($type == 'view') {
         $this->view("../splints/$splint/views/$arg");
       } else {
