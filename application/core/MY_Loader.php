@@ -127,4 +127,29 @@ class Splint {
   function view($view, $params=null, $return=false) {
     $this->ci->load->view("../splints/$this->splint/views/" . $view, $params, $return);
   }
+  /**
+   * [model description]
+   * @param  [type] $model [description]
+   * @param  [type] $alias [description]
+   * @return [type]        [description]
+   */
+  function model($model, $alias=null) {
+      $this->ci->load->model("../splints/$this->splint/models/" . $model, $alias);
+  }
+  /**
+   * [helper description]
+   * @param  [type] $helper [description]
+   * @return [type]         [description]
+   */
+  function helper($helper) {
+    $this->ci->load->helper("../splints/$this->splint/helpers/$helper");
+  }
+  /**
+   * [config description]
+   * @param  [type] $config [description]
+   * @return [type]         [description]
+   */
+  function config($config) {
+    $this->c0->load->config("../splints/$this->splint/config/$config");
+  }
 }
