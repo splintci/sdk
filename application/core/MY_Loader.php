@@ -15,6 +15,7 @@ class MY_Loader extends CI_Loader {
     $splint = trim($splint, '/');
     if (!is_dir(APPPATH . "splints/$splint/")) {
       show_error("Cannot find splint '$splint'");
+      return false;
     }
     if (is_string($autoload)) {
       if (substr($autoload, 0, 1) == "+") {
@@ -54,5 +55,76 @@ class MY_Loader extends CI_Loader {
       }
       return true;
     }
+  }
+  /**
+   * [bind description]
+   * @param  [type] $splint [description]
+   * @param  [type] $bind   [description]
+   * @return [type]         [description]
+   */
+  function bind($splint, &$bind) {
+    $bind = new Splint($splint);
+  }
+}
+
+/**
+ * [Splint description]
+ */
+class Splint {
+
+  /**
+   * [private description]
+   * @var [type]
+   */
+  private $ci;
+  /**
+   * [private description]
+   * @var [type]
+   */
+  private $splint;
+
+  /**
+   * [$load description]
+   * @var [type]
+   */
+  var $load;
+
+  /**
+   * [protected description]
+   * @var [type]
+   */
+  protected $dynamic_fields;
+
+  function __construct($splint) {
+    $this->ci =& get_instance();
+    $this->splint = $splint;
+    $this->load =& $this;
+  }
+  /**
+   * [library description]
+   * @param  [type] $lib    [description]
+   * @param  [type] $params [description]
+   * @param  [type] $alias  [description]
+   * @return [type]         [description]
+   */
+  function library($lib, $params=null, $alias=null, $bind=false) {
+    $this->ci->load->library("../splints/$this->splint/libraries/" . $lib, $params, $alias);
+    if ($bind) {
+      if ($alias != null && is_string($alias)) {
+        $this->{$alias} =& $this->ci->{$alias};
+      } else {
+        $this->{strtolower($lib)} =& $this->ci->{strtolower($lib)};
+      }
+    }
+  }
+  /**
+   * [view description]
+   * @param  [type]  $view   [description]
+   * @param  [type]  $params [description]
+   * @param  boolean $return [description]
+   * @return [type]          [description]
+   */
+  function view($view, $params=null, $return=false) {
+    $this->ci->load->view("../splints/$this->splint/views/" . $view, $params, $return);
   }
 }

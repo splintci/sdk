@@ -32,4 +32,4 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 
 application/splints/*
 application/controllers/SplintTest.php
-
+splint.json
