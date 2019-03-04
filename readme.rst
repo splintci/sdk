@@ -1,7 +1,4 @@
-#############
-
-####Splint SDK
-
+Splint SDK
 ###################
 
 Splint SDK is a complete Code Igniter Distribution with only it's Loader class patched with a `MY_Loader.php` file in it's `application/core` folder. This Loader gives your Code Igniter distribution the functionalities requires to use or develop splint packages.
