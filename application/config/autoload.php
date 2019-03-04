@@ -27,6 +27,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | 5. Custom config files
 | 6. Language files
 | 7. Models
+| 8. Splints
 |
 */
 
@@ -133,3 +134,30 @@ $autoload['language'] = array();
 |	$autoload['model'] = array('first_model' => 'first');
 */
 $autoload['model'] = array();
+
+/*
+| -------------------------------------------------------------------
+|  Auto-load Splints
+| -------------------------------------------------------------------
+| Prototype:
+|
+|  Libraries.
+|  $autoload['splint'] = array('vendor/package_name' => array('+Library',
+|  $params, $alias, '%helpers'));
+|
+|  Models
+|  $autoload['splint'] = array('vendor/package_name' => array('*Model', $alias));
+|
+|  Configs
+|  $autoload['splint'] = array('vendor/package_name' => array('@config'));
+|
+|  Views
+|  $autoload['splint'] = array('vendor/package_name' => array('-view', $data));
+|
+|  Helpers
+|  $autoload['splint'] = array('vendor/package_name' => array('%helper', $alias));
+|
+|  See https://splint.cynobit.com/wiki/{URL Coming Soon} for more.
+|
+*/
+$autoload['splint'] = array();

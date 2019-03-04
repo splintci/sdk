@@ -28,13 +28,19 @@ class MY_Loader extends CI_Loader {
         $this->config("../splints/$splint/config/" . substr($autoload, 1));
       } elseif (substr($autoload, 0, 1) == "%") {
         $this->helper("../splints/$splint/helpers/" . substr($autoload, 1));
+      } else {
+        show_error("Resource type not specified for '$autoload', Use as prefix,
+        + for Libraries, * for Models, - for Views, @ for Configs, and % for
+        Helpers. e.g '+$autoload' to load the '$autoload.php' class as a library
+        from the specified splint package '$splint'.");
+        return false;
       }
       return true;
     }
     foreach ($autoload as $type => $arg) {
       if ($type == 'library') {
         if (is_array($arg)) {
-          $this->library("../splints/$splint/libraries/" . $arg[0], (isset($arg[1]) ? $arg[1] : null), (isset($arg[2]) ? $arg[2] : $arg[0]));
+          $this->library("../splints/$splint/libraries/" . $arg[0], isset($arg[1]) ? $arg[1] : null, isset($arg[2]) ? $arg[2] : null);
         } else {
           $this->library("../splints/$splint/libraries/$arg");
         }
@@ -54,6 +60,62 @@ class MY_Loader extends CI_Loader {
         show_error ("Could not autoload object of type '$type' ($arg) for splint $splint");
       }
       return true;
+    }
+  }
+  /**
+   * [_ci_autoloader description]
+   * @return [type] [description]
+   */
+  function _ci_autoloader() {
+    if (file_exists(APPPATH.'config/autoload.php')) {
+			include(APPPATH.'config/autoload.php');
+		}
+		if (file_exists(APPPATH.'config/'.ENVIRONMENT.'/autoload.php'))	{
+			include(APPPATH.'config/'.ENVIRONMENT.'/autoload.php');
+		}
+    if (!isset($autoload)) {return;}
+		// Autoload packages
+		if (isset($autoload['packages']))	{
+			foreach ($autoload['packages'] as $package_path) {
+				$this->add_package_path($package_path);
+			}
+		}
+		// Load any custom config file
+		if (count($autoload['config']) > 0)	{
+			foreach ($autoload['config'] as $val)	{
+				$this->config($val);
+			}
+		}
+		// Autoload helpers and languages
+		foreach (array('helper', 'language') as $type) {
+			if (isset($autoload[$type]) && count($autoload[$type]) > 0)	{
+				$this->$type($autoload[$type]);
+			}
+		}
+		// Autoload drivers
+		if (isset($autoload['drivers'])) {
+			$this->driver($autoload['drivers']);
+		}
+		// Load libraries
+		if (isset($autoload['libraries']) && count($autoload['libraries']) > 0)	{
+			// Load the database driver.
+			if (in_array('database', $autoload['libraries'])) {
+				$this->database();
+				$autoload['libraries'] = array_diff($autoload['libraries'], array('database'));
+			}
+			// Load all other libraries
+			$this->library($autoload['libraries']);
+		}
+		// Autoload models
+		if (isset($autoload['model'])) {
+			$this->model($autoload['model']);
+		}
+    // Autoload splints
+    if (isset($autoload["splint"])) {
+      foreach ($autoload["splint"] as $splint => $res) {
+        $this->splint($splint, isset($res[0]) ? $res[0] : array(),
+        isset($res[1]) ? $res[1] : null, isset($res[2]) ? $res[2] : null);
+      }
     }
   }
   /**
