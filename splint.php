@@ -134,6 +134,7 @@ function installPackages($splints) {
     $response = downloadPackage($package->identifier, $package->integrity);
     if ($response === 0) die ("Package could not be downloaded.");
     if ($response === false) die ("Package lacks integrity, possible MITM Attack.");
+    $GLOBALS["downloaded"][] = $package->identifier;
     printLine("Done Downloading package $package->identifier.");
     printLine();
   }
@@ -184,6 +185,17 @@ function getDependencies($packages) {
   }
   return $dependencies;
 }
+/**
+ * [cleanUp description]
+ * @param  [type] $splints [description]
+ * @return [type]          [description]
+ */
+function cleanUp($splints) {
+  foreach ($splints as $splint) {
+    if (is_file(str_replace("/", "#", $splint) . ".zip"))
+    unlink(str_replace("/", "#", $splint) . ".zip");
+  }
+}
 
 printLine("&#8224; <a href=\"https://splint.cynobit.com\" target=\"_blank\">Splint</a> Production
 Environment Package Manager v$version &#8224;", "teal");
@@ -195,6 +207,7 @@ if (!isset($data->install) || count($data->install) == 0) die("No packages found
 if (!is_dir(__DIR__ . "/$app_folder")) die("Application folder not found.");
 $splints = $data->install;
 $valid_packages = array();
+$downloaded = array();
 foreach ($splints as $splint) {
   preg_match("/(\w+)\/([a-zA-Z0-9_\-]+)/", $splint, $matches);
   if ($matches[0] != $splint) die ("Bad splint package pattern '$splint'");
@@ -209,6 +222,9 @@ $dependencies = getDependencies(installPackages($valid_packages));
 while (count($dependencies) > 0) {
   $dependencies = getDependencies(installPackages($dependencies));
 }
+printLine();
+printLine("Cleaning Up...");
+cleanUp($downloaded);
 printLine();
 printLine("Done Installing Packages. :-)", "green");
 ?>
