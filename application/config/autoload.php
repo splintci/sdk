@@ -143,7 +143,7 @@ $autoload['model'] = array();
 |
 |  Libraries.
 |  $autoload['splint'] = array('vendor/package_name' => array('+Library',
-|  $params, $alias, '%helpers'));
+|  $params, $alias));
 |
 |  Models
 |  $autoload['splint'] = array('vendor/package_name' => array('*Model', $alias));
@@ -157,7 +157,7 @@ $autoload['model'] = array();
 |  Helpers
 |  $autoload['splint'] = array('vendor/package_name' => array('%helper', $alias));
 |
-|  See https://splint.cynobit.com/wiki/{URL Coming Soon} for more.
+|  See https://splint.cynobit.com/wiki/auto_load_splint for more.
 |
 */
 $autoload['splint'] = array();
