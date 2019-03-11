@@ -127,6 +127,95 @@ class MY_Loader extends CI_Loader {
   function bind($splint, &$bind) {
     $bind = new Splint($splint);
   }
+  /**
+   * [test description]
+   * @param  [type]  $splint [description]
+   * @param  boolean $strict [description]
+   * @return [type]          [description]
+   */
+  function test($splint, $strict=true) {
+    if (!is_dir(APPPATH . "splints/$splint/")) {
+      show_error("Cannot find splint '$splint'");
+      return false;
+    }
+    $this->helper("file");
+    $test_classes = get_filenames(APPPATH . "splints/$splint/tests");
+    $this->library("unit_test");
+    $ci =& get_instance();
+    $ci->unit->use_strict($strict);
+    if ($test_classes == null || count($test_classes) == 0) {return false;}
+    $total_tests = 0;
+    $test_metrics = array();
+    for ($x = 0; $x < count($test_classes); $x++) {
+      $this->library("../splints/$splint/tests/" . $test_classes[$x],
+      null, "test$x");
+      $methods = get_class_methods($ci->{"test$x"});
+      foreach ($methods as $method) {
+        $ci->{"test$x"}->{$method}($ci);
+        $test_metrics[] = array(
+          str_replace(".php", "", $test_classes[$x]),
+          "$method()",
+          count($ci->unit->result()) - $total_tests
+        );
+        $total_tests = count($ci->unit->result());
+      }
+    }
+    $this->displayAnalytics($test_metrics, $ci->unit->result(), count($test_classes));
+  }
+  /**
+   * [displayAnalytics description]
+   * @param  [type] $report [description]
+   * @param  [type] $offset [description]
+   * @return [type]         [description]
+   */
+  private function displayAnalytics($metrics, $reports, $classes) {
+    $testCount = count($reports);
+    $passedCount = 0;
+    $failedCount = 0;
+    $this->bind("splint/platform", $platform);
+    for ($x = 0; $x < $testCount; $x++) {
+      if ($reports[$x]["Result"] === "Passed") {
+        ++$passedCount;
+      } else {
+        ++$failedCount;
+      }
+    }
+    $data = array(
+      "class"        => "Overall Test Results",
+      "test_count"   => count($reports),
+      "passed_count" => $passedCount,
+      "failed_count" => $failedCount,
+      "classes"      => $classes,
+      "functions"    => count($metrics)
+    );
+    $platform->load->view("analytics", $data);
+    $platform->load->view("border", null);
+    foreach ($metrics as $metric) {
+      $offset = 0;
+      $passedCount = 0;
+      $failedCount = 0;
+      for ($x = $offset; $x < $metric[2]; $x++) {
+        if ($reports[$x]["Result"] === "Passed") {
+          ++$passedCount;
+        } else {
+          ++$failedCount;
+        }
+      }
+      $data = array(
+        "class"        => $metric[0],
+        "function"     => $metric[1],
+        "test_count"   => $metric[2],
+        "passed_count" => $passedCount,
+        "failed_count" => $failedCount
+      );
+      $platform->load->view("analytics", $data);
+      for ($x = $offset; $x < $metric[2]; $x++) {
+        $platform->load->load->view("result", array("result" => $reports[$x]));
+      }
+      $platform->load->view("border", null);
+      $offset = $metric[2];
+    }
+  }
 }
 
 /**
