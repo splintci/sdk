@@ -30,7 +30,7 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 /tests/tests/
 /tests/results/
 
-application/splints/*
+application/splints/francis94c/*
 application/controllers/SplintTest.php
 splint.json
 application/libraries/CIPreferences.php
