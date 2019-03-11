@@ -134,14 +134,26 @@ class MY_Loader extends CI_Loader {
    * @return [type]          [description]
    */
   function test($splint, $strict=true) {
+    defined("TEST_STATUS") OR define("TEST_STATUS", "test_status");
     if (!is_dir(APPPATH . "splints/$splint/")) {
       show_error("Cannot find splint '$splint'");
       return false;
     }
     $this->helper("file");
-    $test_classes = get_filenames(APPPATH . "splints/$splint/tests");
-    $this->library("unit_test");
+    $test_classes = array();
+    $files = get_filenames(APPPATH . "splints/$splint/tests");
+    foreach ($files as $file) {
+      if ($this->endsWith($file, ".php")) $test_classes[] = $file;
+    }
     $ci =& get_instance();
+    if (file_exists(APPPATH . "splints/$splint/tests/post_data.json") &&
+    $ci->security->xss_clean($ci->input->post(TEST_STATUS)) == "") {
+      $this->bind("splint/platform", $platform);
+      $post_data = json_decode(file_get_contents(APPPATH . "splints/$splint/tests/post_data.json"), true);
+      $post_data[TEST_STATUS] = "ready";
+      $platform->load->view("form", array("fields" => $post_data));
+    }
+    $this->library("unit_test");
     $ci->unit->use_strict($strict);
     if ($test_classes == null || count($test_classes) == 0) {return false;}
     $total_tests = 0;
@@ -161,6 +173,17 @@ class MY_Loader extends CI_Loader {
       }
     }
     $this->displayAnalytics($test_metrics, $ci->unit->result(), count($test_classes));
+  }
+  /**
+   * [endsWith description]
+   * @param  [type] $haystack [description]
+   * @param  [type] $needle   [description]
+   * @return [type]           [description]
+   */
+  function endsWith($haystack, $needle) {
+    $length = strlen($needle);
+    if ($length == 0) return true;
+    return substr($haystack, -$length) === $needle;
   }
   /**
    * [displayAnalytics description]
@@ -285,7 +308,7 @@ class Splint {
    * @return [type]        [description]
    */
   function model($model, $alias=null) {
-      $this->ci->load->model("../splints/$this->splint/models/" . $model, $alias);
+    $this->ci->load->model("../splints/$this->splint/models/" . $model, $alias);
   }
   /**
    * [helper description]
