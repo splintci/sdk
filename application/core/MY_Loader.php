@@ -152,6 +152,7 @@ class MY_Loader extends CI_Loader {
       $post_data = json_decode(file_get_contents(APPPATH . "splints/$splint/tests/post_data.json"), true);
       $post_data[TEST_STATUS] = "ready";
       $platform->load->view("form", array("fields" => $post_data));
+      return true;
     }
     $this->library("unit_test");
     $ci->unit->use_strict($strict);
