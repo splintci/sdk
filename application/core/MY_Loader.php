@@ -214,12 +214,20 @@ class MY_Loader extends CI_Loader {
     );
     $platform->load->view("analytics", $data);
     $platform->load->view("border", null);
+    $offset = 0;
     foreach ($metrics as $metric) {
-      $offset = 0;
       $passedCount = 0;
       $failedCount = 0;
-      for ($x = $offset; $x < $metric[2]; $x++) {
-        if ($reports[$x]["Result"] === "Passed") {
+      if ($offset != count($reports) - 1) {
+        for ($x = $offset; $x < $metric[2]; $x++) {
+          if ($reports[$x]["Result"] === "Passed") {
+            ++$passedCount;
+          } else {
+            ++$failedCount;
+          }
+        }
+      } else {
+        if ($reports[$offset]["Result"] === "Passed") {
           ++$passedCount;
         } else {
           ++$failedCount;
@@ -230,14 +238,20 @@ class MY_Loader extends CI_Loader {
         "function"     => $metric[1],
         "test_count"   => $metric[2],
         "passed_count" => $passedCount,
-        "failed_count" => $failedCount
+        "failed_count" => $failedCount,
+        "classes"      => "",
+        "functions"    => ""
       );
       $platform->load->view("analytics", $data);
-      for ($x = $offset; $x < $metric[2]; $x++) {
-        $platform->load->load->view("result", array("result" => $reports[$x]));
+      if ($offset != count($reports) - 1) {
+        for ($x = $offset; $x < count($reports) - $metric[2]; $x++) {
+          $platform->load->load->view("result", array("result" => $reports[$x]));
+        }
+      } else {
+        $platform->load->view("result", array("result" => $reports[$offset]));
       }
       $platform->load->view("border", null);
-      $offset = $metric[2];
+      $offset += $metric[2];
     }
   }
 }
