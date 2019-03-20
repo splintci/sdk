@@ -1,4 +1,4 @@
-<?php  if (! defined('BASEPATH')) exit('No direct script access allowed');
+<?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * [MY_Loader description]
@@ -21,7 +21,7 @@ class MY_Loader extends CI_Loader {
       if (substr($autoload, 0, 1) == "+") {
         $this->library("../splints/$splint/libraries/" . substr($autoload, 1), $params, $alias);
       } elseif (substr($autoload, 0, 1) == "*") {
-        $this->model("../splints/$splint/models/" . substr($autoload, 1));
+        $this->model("../splints/$splint/models/" . substr($autoload, 1), ($params != null && is_string($params) ? $params : null));
       } elseif (substr($autoload, 0, 1) == "-") {
         $this->view("../splints/$splint/views/" . substr($autoload, 1), $params, $returnView);
       } elseif (substr($autoload, 0, 1) == "@") {
@@ -168,7 +168,8 @@ class MY_Loader extends CI_Loader {
         $test_metrics[] = array(
           str_replace(".php", "", $test_classes[$x]),
           "$method()",
-          count($ci->unit->result()) - $total_tests
+          count($ci->unit->result()) - $total_tests,
+          count($ci->unit->result())
         );
         $total_tests = count($ci->unit->result());
       }
@@ -218,16 +219,8 @@ class MY_Loader extends CI_Loader {
     foreach ($metrics as $metric) {
       $passedCount = 0;
       $failedCount = 0;
-      if ($offset != count($reports) - 1) {
-        for ($x = $offset; $x < $metric[2]; $x++) {
-          if ($reports[$x]["Result"] === "Passed") {
-            ++$passedCount;
-          } else {
-            ++$failedCount;
-          }
-        }
-      } else {
-        if ($reports[$offset]["Result"] === "Passed") {
+      for ($x = $offset; $x < $metric[3]; $x++) {
+        if ($reports[$x]["Result"] === "Passed") {
           ++$passedCount;
         } else {
           ++$failedCount;
@@ -243,12 +236,8 @@ class MY_Loader extends CI_Loader {
         "functions"    => ""
       );
       $platform->load->view("analytics", $data);
-      if ($offset != count($reports) - 1) {
-        for ($x = $offset; $x < count($reports) - $metric[2]; $x++) {
-          $platform->load->load->view("result", array("result" => $reports[$x]));
-        }
-      } else {
-        $platform->load->view("result", array("result" => $reports[$offset]));
+      for ($x = $offset; $x < $metric[3]; $x++) {
+        $platform->load->load->view("result", array("result" => $reports[$x]));
       }
       $platform->load->view("border", null);
       $offset += $metric[2];
