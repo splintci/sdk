@@ -11,7 +11,7 @@ class MY_Loader extends CI_Loader {
    * @param  array  $autoload [description]
    * @return [type]           [description]
    */
-  function splint($splint, $autoload = array(), $params = null, $alias = null, $returnView = false) {
+  function splint($splint, $autoload = array(), $params = null, $alias = null) {
     $splint = trim($splint, '/');
     if (!is_dir(APPPATH . "splints/$splint/")) {
       show_error("Cannot find splint '$splint'");
@@ -23,7 +23,12 @@ class MY_Loader extends CI_Loader {
       } elseif (substr($autoload, 0, 1) == "*") {
         $this->model("../splints/$splint/models/" . substr($autoload, 1), ($params != null && is_string($params) ? $params : null));
       } elseif (substr($autoload, 0, 1) == "-") {
-        $this->view("../splints/$splint/views/" . substr($autoload, 1), $params, $returnView);
+        if ($alias === null) $alias = false;
+        if ($alias) {
+          return $this->view("../splints/$splint/views/" . substr($autoload, 1), $params, true);
+        } else {
+          $this->view("../splints/$splint/views/" . substr($autoload, 1), $params);
+        }
       } elseif (substr($autoload, 0, 1) == "@") {
         $this->config("../splints/$splint/config/" . substr($autoload, 1));
       } elseif (substr($autoload, 0, 1) == "%") {
@@ -303,7 +308,10 @@ class Splint {
    * @return [type]          [description]
    */
   function view($view, $params=null, $return=false) {
-    $this->ci->load->view("../splints/$this->splint/views/" . $view, $params, $return);
+    if ($return) {
+      return $this->ci->load->view("../splints/$this->splint/views/" . $view, $params, true);
+    }
+    $this->ci->load->view("../splints/$this->splint/views/" . $view, $params);
   }
   /**
    * [model description]
