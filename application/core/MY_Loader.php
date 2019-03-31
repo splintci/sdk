@@ -328,6 +328,7 @@ class Splint {
    * @return [type]         [description]
    */
   function config($config) {
-    $this->c0->load->config("../splints/$this->splint/config/$config");
+    $this->ci->load->config("../splints/$this->splint/config/$config");
   }
 }
+?>
