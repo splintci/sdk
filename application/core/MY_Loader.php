@@ -17,6 +17,9 @@ class MY_Loader extends CI_Loader {
       show_error("Cannot find splint '$splint'");
       return false;
     }
+    if (is_array($autoload) && count($autoload) == 0 && $params == null && $alias == null) {
+      return new Splint($splint);
+    }
     if (is_string($autoload)) {
       if (substr($autoload, 0, 1) == "+") {
         $this->library("../splints/$splint/libraries/" . substr($autoload, 1), $params, $alias);
@@ -129,8 +132,12 @@ class MY_Loader extends CI_Loader {
    * @param  [type] $bind   [description]
    * @return [type]         [description]
    */
-  function bind($splint, &$bind) {
-    $bind = new Splint($splint);
+  function bind($splint, &$bind=null) {
+    if (func_num_args() == 2) {
+      $bind = new Splint($splint);
+    } else {
+      return new Splint($splint);
+    }
   }
   /**
    * [test description]
@@ -153,7 +160,7 @@ class MY_Loader extends CI_Loader {
     $ci =& get_instance();
     if (file_exists(APPPATH . "splints/$splint/tests/post_data.json") &&
     $ci->security->xss_clean($ci->input->post(TEST_STATUS)) == "") {
-      $this->bind("splint/platform", $platform);
+      $platform = $this->splint("splint/platform");
       $post_data = json_decode(file_get_contents(APPPATH . "splints/$splint/tests/post_data.json"), true);
       $post_data[TEST_STATUS] = "ready";
       $platform->load->view("form", array("fields" => $post_data));
