@@ -154,6 +154,7 @@ class MY_Loader extends CI_Loader {
     $this->helper("file");
     $test_classes = array();
     $files = get_filenames(APPPATH . "splints/$splint/tests");
+    if (!$files) return true;
     foreach ($files as $file) {
       if ($this->endsWith($file, ".php")) $test_classes[] = $file;
     }
