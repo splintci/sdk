@@ -12,6 +12,11 @@
 // =============================================================================
 
 /**
+ * [$server description]
+ * @var [type]
+ */
+$server = file_exists("development") ? "http://localhost/" : "https://";
+/**
  * [$version description]
  * @var string
  */
@@ -53,7 +58,7 @@ function printLine($str=null, $color="black") {
  * @return [type]            [description]
  */
 function downloadPackage($package, $integrity) {
-  $url = "http://localhost/splint.cynobit.com/index.php/SplintClient/downloadPackage";
+  $url = "{$GLOBALS["server"]}splint.cynobit.com/index.php/SplintClient/downloadPackage";
   $params = array("identifier" => $package);
   $options = array(
     "http" => array(
@@ -95,8 +100,7 @@ function installPackages($splints) {
   $no_install = array();
   $header = "Content-type: application/x-www-form-urlencoded\r\nUser-Agent:
     Splint-Production-Client\r\n";
-  //$url = "https://splint.cynobit.com/index.php/SplintClient/requestPackages";
-  $url = "http://localhost/splint.cynobit.com/index.php/SplintClient/requestPackages";
+  $url = "{$GLOBALS["server"]}splint.cynobit.com/index.php/SplintClient/requestPackages";
   $params = array("identifiers" => implode(",", $splints));
   $options = array(
     "http" => array(
@@ -165,7 +169,6 @@ function getDependencies($packages) {
     "/splint.json";
     if (is_file($path)) {
       $descriptor = json_decode($path);
-      //$descriptor->depends_on[] = "francis94c/ci-preferences";
       if (isset($descriptor->depends_on) && is_array($descriptor->depends_on)) {
         foreach ($descriptor->depends_on as $dependency) {
           preg_match("/(\w+)\/([a-zA-Z0-9_\-]+)/", $dependency, $matches);
