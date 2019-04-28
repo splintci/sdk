@@ -146,6 +146,7 @@ class MY_Loader extends CI_Loader {
    * @return [type]          [description]
    */
   function test($splint, $strict=true) {
+    // Form hidden field to determine if form parameters have been loaded.
     defined("TEST_STATUS") OR define("TEST_STATUS", "test_status");
     if (!is_dir(APPPATH . "splints/$splint/")) {
       show_error("Cannot find splint '$splint'");
@@ -153,23 +154,40 @@ class MY_Loader extends CI_Loader {
     }
     $this->helper("file");
     $test_classes = array();
-    $files = get_filenames(APPPATH . "splints/$splint/tests");
-    if (!$files) return true;
-    foreach ($files as $file) {
-      if ($this->endsWith($file, ".php")) $test_classes[] = $file;
+    $testDir = APPPATH . "splints/$splint/tests/";
+    if (!is_dir($testDir)) return true;
+    $jsTestDir = $testDir . "js/";
+    $scannedFiles = array_diff(scandir($testDir), array('.', '..'));
+    $files = array();
+    $scannedJsFiles = is_dir($jsTestDir) ? array_diff(scandir($jsTestDir), array('.', '..')) : array();
+    $jsFiles = array();
+    foreach ($scannedFiles as $file) {
+      if (is_file($testDir . $file) && $this->endsWith($file, ".php")) $test_classes[] = $file;
     }
+    foreach ($scannedJsFiles as $file) {
+      if (is_file($jsTestDir . $file ) && $this->endsWith($file, ".php")) $jsTests[] = $file;
+    }
+    if (count($test_classes) == 0 && count($jsTests) == 0) return true;
     $ci =& get_instance();
+    $platform = $this->splint("splint/platform");
     if (file_exists(APPPATH . "splints/$splint/tests/post_data.json") &&
     $ci->security->xss_clean($ci->input->post(TEST_STATUS)) == "") {
-      $platform = $this->splint("splint/platform");
       $post_data = json_decode(file_get_contents(APPPATH . "splints/$splint/tests/post_data.json"), true);
       $post_data[TEST_STATUS] = "ready";
       $platform->load->view("form", array("fields" => $post_data));
       return true;
     }
+    if (isset($jsTests) && count($jsTests) > 0) {
+      $platform->load->view("js/qunit");
+      $platform->load->view("css/qunit");
+      $platform->load->view("qunit_container");
+      foreach ($jsTests as $test) {
+        $this->view("../splints/$splint/tests/js/$test");
+      }
+    }
     $this->library("unit_test");
     $ci->unit->use_strict($strict);
-    if ($test_classes == null || count($test_classes) == 0) {return false;}
+    if (count($test_classes) == 0) return false;
     $total_tests = 0;
     $test_metrics = array();
     for ($x = 0; $x < count($test_classes); $x++) {
@@ -195,7 +213,7 @@ class MY_Loader extends CI_Loader {
    * @param  [type] $needle   [description]
    * @return [type]           [description]
    */
-  function endsWith($haystack, $needle) {
+  private function endsWith($haystack, $needle) {
     $length = strlen($needle);
     if ($length == 0) return true;
     return substr($haystack, -$length) === $needle;
