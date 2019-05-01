@@ -71,6 +71,62 @@ class MY_Loader extends CI_Loader {
     }
   }
   /**
+   * [package description]
+   * @param  [type] $splint [description]
+   * @return [type]         [description]
+   */
+  function package($splint) {
+    $splint = trim($splint, '/');
+    if (!is_dir(APPPATH . "splints/$splint/")) {
+      show_error("Cannot find splint '$splint'");
+      return false;
+    }
+    $descriptor = json_decode(file_get_contents(APPPATH . "splints/$splint/splint.json"));
+    $loadedCount = 0;
+    if (isset($descriptor->autoload)) {
+      // Libraries.
+      if (isset($descriptor->autoload->libraries) && is_array($descriptor->autoload->libraries)) {
+        foreach ($descriptor->autoload->libraries as $parameters) {
+          if (count($parameters) == 3) {
+            $this->library("../splints/$splint/libraries/" . $parameters[0], !is_string($parameters[1]) ? (array) $parameters[1] : null, $parameters[2]);
+            ++$loadedCount;
+          } else {
+            $this->library("../splints/$splint/libraries/" . $parameters[0], null, $parameters[1]);
+            ++$loadedCount;
+          }
+        }
+      }
+      // Models.
+      if (isset($descriptor->autoload->models) && is_array($descriptor->autoload->models)) {
+        foreach ($descriptor->autoload->models as $parameters) {
+          if (is_string($parameters[0])) {
+            $this->model("../splints/$splint/models/" . $parameters[0], isset($parameters[1]) && is_string($parameters[1]) ? $parameters[1] : null);
+            ++$loadedCount;
+          }
+        }
+      }
+      // Helpers.
+      if (isset($descriptor->autoload->helpers) && is_array($descriptor->autoload->helpers)) {
+        foreach ($descriptor->autoload->helpers as $parameters) {
+          if (is_string($parameters)) {
+            $this->helper("../splints/$splint/helpers/" . $parameters);
+            ++$loadedCount;
+          }
+        }
+      }
+      // Configs.
+      if (isset($descriptor->autoload->configs) && is_array($descriptor->autoload->configs)) {
+        foreach ($descriptor->autoload->configs as $parameters) {
+          if (is_string($parameters)) {
+            $this->config("../splints/$splint/config/" . $parameters);
+            ++$loadedCount;
+          }
+        }
+      }
+    }
+    return $loadedCount > 0;
+  }
+  /**
    * [_ci_autoloader description]
    * @return [type] [description]
    */
@@ -123,6 +179,12 @@ class MY_Loader extends CI_Loader {
       foreach ($autoload["splint"] as $splint => $res) {
         $this->splint($splint, isset($res[0]) ? $res[0] : array(),
         isset($res[1]) ? $res[1] : null, isset($res[2]) ? $res[2] : null);
+      }
+    }
+    // Autoload splints from splint descriptors.
+    if (isset($autoload["splint+"])) {
+      foreach ($autoload["splint+"] as $splint) {
+        $this->package($splint);
       }
     }
   }
