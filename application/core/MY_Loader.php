@@ -189,10 +189,12 @@ class MY_Loader extends CI_Loader {
     }
   }
   /**
-   * [bind description]
-   * @param  [type] $splint [description]
-   * @param  [type] $bind   [description]
-   * @return [type]         [description]
+   * [bind   creates a Splint object and optionally binds the object to a passed
+   *         variable]
+   * @param  string $splint Splint package name.
+   * @param  object $bind   Optional variable to bind Splint object to.
+   * @return object         [Optional] Returns a Splint oject if no argument is
+   *                        passed for $bind.
    */
   function bind($splint, &$bind=null) {
     if (func_num_args() == 2) {
