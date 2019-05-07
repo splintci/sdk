@@ -88,8 +88,15 @@ class MY_Loader extends CI_Loader {
       if (isset($descriptor->autoload->libraries) && is_array($descriptor->autoload->libraries)) {
         foreach ($descriptor->autoload->libraries as $parameters) {
           if (count($parameters) == 3) {
-            $this->library("../splints/$splint/libraries/" . $parameters[0], !is_string($parameters[1]) ? (array) $parameters[1] : null, $parameters[2]);
-            ++$loadedCount;
+            if (is_string($parameters[1]) && substr($parameters[1], 0, 1) == "@") {
+              $this->config(substr($parameters[1], 1), true, true);
+              $ci =& get_instance();
+              $this->library("../splints/$splint/libraries/" . $parameters[0], $ci->config->item(substr($parameters[1], 1), substr($parameters[1], 1)), $parameters[2]);
+              ++$loadedCount;
+            } else {
+              $this->library("../splints/$splint/libraries/" . $parameters[0], !is_string($parameters[1]) ? (array) $parameters[1] : null, $parameters[2]);
+              ++$loadedCount;
+            }
           } else {
             $this->library("../splints/$splint/libraries/" . $parameters[0], null, $parameters[1]);
             ++$loadedCount;
