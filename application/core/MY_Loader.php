@@ -91,10 +91,13 @@ class MY_Loader extends CI_Loader {
             if (is_string($parameters[1]) && substr($parameters[1], 0, 1) == "@") {
               $this->config(substr($parameters[1], 1), true, true);
               $ci =& get_instance();
-              $this->library("../splints/$splint/libraries/" . $parameters[0], $ci->config->item(substr($parameters[1], 1), substr($parameters[1], 1)), $parameters[2]);
+              $params = $ci->config->item(substr($parameters[1], 1), substr($parameters[1], 1));
+              $params["autoload"] = true;
+              $this->library("../splints/$splint/libraries/" . $parameters[0], $params, $parameters[2]);
               ++$loadedCount;
             } else {
               if (!is_scalar($parameters[1])) $params = json_decode(json_encode($parameters[1]), true);
+              if (isset($params)) $params["autoload"] = true;
               $this->library("../splints/$splint/libraries/" . $parameters[0], (isset($params) && $this->is_assoc($params) ? $params : null), $parameters[2]);
               ++$loadedCount;
             }
