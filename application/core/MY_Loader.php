@@ -65,7 +65,7 @@ class MY_Loader extends CI_Loader {
       } elseif($type == 'view') {
         $this->view("../splints/$splint/views/$arg");
       } else {
-        show_error ("Could not autoload object of type '$type' ($arg) for splint $splint");
+        show_error ("Could not autoload object of type '$type' for splint $splint");
       }
       return true;
     }
