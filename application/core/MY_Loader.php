@@ -94,7 +94,8 @@ class MY_Loader extends CI_Loader {
               $this->library("../splints/$splint/libraries/" . $parameters[0], $ci->config->item(substr($parameters[1], 1), substr($parameters[1], 1)), $parameters[2]);
               ++$loadedCount;
             } else {
-              $this->library("../splints/$splint/libraries/" . $parameters[0], !is_string($parameters[1]) ? (array) $parameters[1] : null, $parameters[2]);
+              if (!is_scalar($parameters[1])) $params = json_decode(json_encode($parameters[1]), true);
+              $this->library("../splints/$splint/libraries/" . $parameters[0], (isset($params) && $this->is_assoc($params) ? $params : null), $parameters[2]);
               ++$loadedCount;
             }
           } else {
@@ -277,6 +278,14 @@ class MY_Loader extends CI_Loader {
       }
     }
     $this->displayAnalytics($test_metrics, $ci->unit->result(), count($test_classes));
+  }
+  /**
+   * [is_assoc description]
+   * @param  [type]  $arr [description]
+   * @return boolean      [description]
+   */
+  private function is_assoc($arr) {
+    return array_keys($arr) !== range(0, count($arr) - 1);
   }
   /**
    * [endsWith description]
