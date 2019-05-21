@@ -231,7 +231,7 @@ class MY_Loader extends CI_Loader {
     $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_start');
 
     $APP = new $class($splint);
-
+    
     // TODO: post-hook
     //$EXT->call_hook('post_controller_constructor');
 
