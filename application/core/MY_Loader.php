@@ -144,7 +144,14 @@ class MY_Loader extends CI_Loader {
    */
   function app($splint) {
     // Load App Router.
-    $this->splint("splint/platform", "+AppRouter", array("splint" => $splint) , "approuter");
+    //$this->splint("splint/platform", "+AppRouter", array("splint" => $splint) , "approuter");
+    if (file_exists(APPPATH.'splints/splint/platform/libraries/AppRouter.php')) {
+      include(APPPATH.'splints/splint/platform/libraries/AppRouter.php');
+      $approuter = new AppRouter(array("splint" => $splint));
+    } else {
+      show_error("Platform Support Package not found.");
+      return false;
+    }
     // Include App Controller Parent Class
     if (file_exists(APPPATH.'splints/splint/platform/libraries/SplintAppController.php')) {
       include(APPPATH.'splints/splint/platform/libraries/SplintAppController.php');
@@ -155,15 +162,15 @@ class MY_Loader extends CI_Loader {
 
     $ci =& get_instance();
     $e404 = FALSE;
-	  $class = ucfirst($ci->approuter->class);
-	  $method = $ci->approuter->method;
+	  $class = ucfirst($approuter->class);
+	  $method = $approuter->method;
 
     // Checks and Flag Setting.
-    if (empty($class) OR ! file_exists(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$class.'.php'))	{
+    if (empty($class) OR ! file_exists(APPPATH."splints/$splint/controllers/".$approuter->directory.$class.'.php'))	{
       $e404 = TRUE;
     }	else {
       // Require Specified Controller
-      require_once(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$class.'.php');
+      require_once(APPPATH."splints/$splint/controllers/".$approuter->directory.$class.'.php');
       // Further Checks.
       if (!class_exists($class, FALSE) OR $method[0] === '_' OR method_exists('CI_Controller', $method)) {
         $e404 = TRUE;
@@ -181,19 +188,19 @@ class MY_Loader extends CI_Loader {
     }
 
     if ($e404) {
-      if (!empty($ci->approuter->routes['404_override'])) {
-        if (sscanf($ci->approuter->routes['404_override'], '%[^/]/%s', $error_class, $error_method) !== 2)	{
+      if (!empty($approuter->routes['404_override'])) {
+        if (sscanf($approuter->routes['404_override'], '%[^/]/%s', $error_class, $error_method) !== 2)	{
           $error_method = 'index';
 			  }
         $error_class = ucfirst($error_class);
         if (!class_exists($error_class, FALSE)) {
-          if (file_exists(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php')) {
-            require_once(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php');
+          if (file_exists(APPPATH."splints/$splint/controllers/".$approuter->directory.$error_class.'.php')) {
+            require_once(APPPATH."splints/$splint/controllers/".$approuter->directory.$error_class.'.php');
 					  $e404 = ! class_exists($error_class, FALSE);
-				  }	elseif (!empty($ci->approuter->directory) && file_exists(APPPATH."splints/$splint/controllers/".$error_class.'.php'))	{
+				  }	elseif (!empty($approuter->directory) && file_exists(APPPATH."splints/$splint/controllers/".$error_class.'.php'))	{
             require_once(APPPATH."splints/$splint/controllers/".$error_class.'.php');
 				 	  if (($e404 = ! class_exists($error_class, FALSE)) === FALSE) {
-              $ci->approuter->directory = '';
+              $approuter->directory = '';
 					  }
 				  }
 			  }	else {
@@ -209,7 +216,7 @@ class MY_Loader extends CI_Loader {
 				  2 => $method
 			  );
 		  } else {
-			  show_404($ci->approuter->directory.$class.'/'.$method);
+			  show_404($approuter->directory.$class.'/'.$method);
 		  }
 	  }
 
@@ -223,7 +230,7 @@ class MY_Loader extends CI_Loader {
     // Mark a start point so we can benchmark the app controller
     $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_start');
 
-    $APP = new $class();
+    $APP = new $class($splint);
 
     // TODO: post-hook
     //$EXT->call_hook('post_controller_constructor');
@@ -232,7 +239,7 @@ class MY_Loader extends CI_Loader {
     call_user_func_array(array(&$APP, $method), $params);
 
     // Mark an end point so we can benchmark the app controller
-    $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_end'); 
+    $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_end');
   }
   /**
    * [_ci_autoloader description]
