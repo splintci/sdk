@@ -140,9 +140,10 @@ class MY_Loader extends CI_Loader {
   /**
    * [app description]
    * @param  [type] $splint [description]
+   * @param  [type] $data   [description]
    * @return [type]         [description]
    */
-  function app($splint) {
+  function app($splint, $data=null) {
     // Load App Router.
     //$this->splint("splint/platform", "+AppRouter", array("splint" => $splint) , "approuter");
     if (file_exists(APPPATH.'splints/splint/platform/libraries/AppRouter.php')) {
@@ -230,8 +231,8 @@ class MY_Loader extends CI_Loader {
     // Mark a start point so we can benchmark the app controller
     $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_start');
 
-    $APP = new $class($splint);
-    
+    $APP = new $class($splint, is_array($data) && $this->is_assoc($data) ? $data : null);
+
     // TODO: post-hook
     //$EXT->call_hook('post_controller_constructor');
 
