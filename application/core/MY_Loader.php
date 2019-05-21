@@ -143,17 +143,28 @@ class MY_Loader extends CI_Loader {
    * @return [type]         [description]
    */
   function app($splint) {
+    // Load App Router.
     $this->splint("splint/platform", "+AppRouter", array("splint" => $splint) , "approuter");
+    // Include App Controller Parent Class
+    if (file_exists(APPPATH.'splints/splint/platform/libraries/SplintAppController.php')) {
+      include(APPPATH.'splints/splint/platform/libraries/SplintAppController.php');
+    } else {
+      show_error("Platform Support Package not found.");
+      return false;
+    }
+
     $ci =& get_instance();
     $e404 = FALSE;
 	  $class = ucfirst($ci->approuter->class);
 	  $method = $ci->approuter->method;
+
+    // Checks and Flag Setting.
     if (empty($class) OR ! file_exists(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$class.'.php'))	{
-      //echo $ci->approuter->directory;
-      echo APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$class.'.php';
       $e404 = TRUE;
     }	else {
+      // Require Specified Controller
       require_once(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$class.'.php');
+      // Further Checks.
       if (!class_exists($class, FALSE) OR $method[0] === '_' OR method_exists('CI_Controller', $method)) {
         $e404 = TRUE;
       }	elseif (method_exists($class, '_remap')) {
@@ -161,96 +172,67 @@ class MY_Loader extends CI_Loader {
 			  $method = '_remap';
       } elseif (!method_exists($class, $method)) {
         $e404 = TRUE;
-      }
-		  /**
-		   * DO NOT CHANGE THIS, NOTHING ELSE WORKS!
-		   *
-		   * - method_exists() returns true for non-public methods, which passes the previous elseif
-		   * - is_callable() returns false for PHP 4-style constructors, even if there's a __construct()
-		   * - method_exists($class, '__construct') won't work because CI_Controller::__construct() is inherited
-		   * - People will only complain if this doesn't work, even though it is documented that it shouldn't.
-		   *
-		   * ReflectionMethod::isConstructor() is the ONLY reliable check,
-		   * knowing which method will be executed as a constructor.
-		   */
-		  elseif ( ! is_callable(array($class, $method)))	{
+      } elseif (!is_callable(array($class, $method)))	{
         $reflection = new ReflectionMethod($class, $method);
         if ( ! $reflection->isPublic() OR $reflection->isConstructor())	{
           $e404 = TRUE;
         }
       }
     }
+
     if ($e404) {
-		 if (!empty($ci->approuter->routes['404_override'])) {
-       if (sscanf($ci->approuter->routes['404_override'], '%[^/]/%s', $error_class, $error_method) !== 2)	{
-				$error_method = 'index';
-			 }
-       $error_class = ucfirst($error_class);
-       if (!class_exists($error_class, FALSE)) {
-				if (file_exists(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php')) {
-          require_once(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php');
-					$e404 = ! class_exists($error_class, FALSE);
-				}
-				// Were we in a directory? If so, check for a global override
-				elseif ( ! empty($ci->approuter->directory) && file_exists(APPPATH."splints/$splint/controllers/".$error_class.'.php'))	{
-          require_once(APPPATH."splints/$splint/controllers/".$error_class.'.php');
-					if (($e404 = ! class_exists($error_class, FALSE)) === FALSE) {
-            $ci->approuter->directory = '';
-					}
-				}
-			}	else {
-				$e404 = FALSE;
-			}
-		}
-		// Did we reset the $e404 flag? If so, set the rsegments, starting from index 1
-		if ( ! $e404)	{
-      $class = $error_class;
-			$method = $error_method;
-			$URI->rsegments = array(
-				1 => $class,
-				2 => $method
-			);
-		} else {
-			show_404($ci->approuter->directory.$class.'/'.$method);
-		}
-	}
+      if (!empty($ci->approuter->routes['404_override'])) {
+        if (sscanf($ci->approuter->routes['404_override'], '%[^/]/%s', $error_class, $error_method) !== 2)	{
+          $error_method = 'index';
+			  }
+        $error_class = ucfirst($error_class);
+        if (!class_exists($error_class, FALSE)) {
+          if (file_exists(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php')) {
+            require_once(APPPATH."splints/$splint/controllers/".$ci->approuter->directory.$error_class.'.php');
+					  $e404 = ! class_exists($error_class, FALSE);
+				  }	elseif (!empty($ci->approuter->directory) && file_exists(APPPATH."splints/$splint/controllers/".$error_class.'.php'))	{
+            require_once(APPPATH."splints/$splint/controllers/".$error_class.'.php');
+				 	  if (($e404 = ! class_exists($error_class, FALSE)) === FALSE) {
+              $ci->approuter->directory = '';
+					  }
+				  }
+			  }	else {
+				  $e404 = FALSE;
+			  }
+		  }
+		  // Did we reset the $e404 flag? If so, set the rsegments, starting from index 1
+		  if (!$e404)	{
+        $class = $error_class;
+			  $method = $error_method;
+			  $ci->uri->apprsegments = array(
+				  1 => $class,
+				  2 => $method
+			  );
+		  } else {
+			  show_404($ci->approuter->directory.$class.'/'.$method);
+		  }
+	  }
 
-	if ($method !== '_remap')	{
-		$params = array_slice($ci->uri->apprsegments, 2);
-	}
+	  if ($method !== '_remap')	{
+		  $params = array_slice($ci->uri->apprsegments, 2);
+	  }
 
-  /*
-   * ------------------------------------------------------
-   *  Is there a "pre_controller" hook?
-   * ------------------------------------------------------
-   */
-  	//$EXT->call_hook('pre_controller');
+    // TODO: pre-hook
+    //$EXT->call_hook('pre_controller');
 
-  /*
-   * ------------------------------------------------------
-   *  Instantiate the requested controller
-   * ------------------------------------------------------
-   */
-  	// Mark a start point so we can benchmark the controller
-  	//$BM->mark('controller_execution_time_( '.$class.' / '.$method.' )_start');
+    // Mark a start point so we can benchmark the app controller
+    $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_start');
+
     $APP = new $class();
 
-  /*
-   * ------------------------------------------------------
-   *  Is there a "post_controller_constructor" hook?
-   * ------------------------------------------------------
-   */
-	  //$EXT->call_hook('post_controller_constructor');
+    // TODO: post-hook
+    //$EXT->call_hook('post_controller_constructor');
 
-  /*
-   * ------------------------------------------------------
-   *  Call the requested method
-   * ------------------------------------------------------
-   */
-	  call_user_func_array(array(&$APP, $method), $params);
+    // Call App Controller.
+    call_user_func_array(array(&$APP, $method), $params);
 
-    // Invoke Controller Method.
-    //require_once(APPPATH . "splints/$splint/controllers/".$RTR->directory.$class.'.php');
+    // Mark an end point so we can benchmark the app controller
+    $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_end'); 
   }
   /**
    * [_ci_autoloader description]
