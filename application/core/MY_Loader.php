@@ -95,6 +95,8 @@ class MY_Loader extends CI_Loader {
       }
       return true;
     }
+
+    // We recieved an array.
     foreach ($autoload as $type => $arg) {
       if ($type == 'library') {
         if (is_array($arg)) {
@@ -121,9 +123,15 @@ class MY_Loader extends CI_Loader {
     }
   }
   /**
-   * [package description]
-   * @param  [type] $splint [description]
-   * @return [type]         [description]
+   * package This function loads a package by loading the resources specified in
+   *         package descriptor as specified.
+   *
+   * @param  string $splint The qualified name of the Splint package e.g.
+   *                        zoey/bootstrap.
+   *
+   * @return int            The number of resources loaded. This function
+   *                        returns false if the specified package doesn't
+   *                        exist.
    */
   function package($splint) {
     $splint = trim($splint, '/');
@@ -131,8 +139,12 @@ class MY_Loader extends CI_Loader {
       show_error("Cannot find splint '$splint'");
       return false;
     }
+
+    // Get Descriptor
     $descriptor = json_decode(file_get_contents(APPPATH . "splints/$splint/splint.json"));
     $loadedCount = 0;
+
+    // Begin Check.
     if (isset($descriptor->autoload)) {
       // Libraries.
       if (isset($descriptor->autoload->libraries) && is_array($descriptor->autoload->libraries)) {
