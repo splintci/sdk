@@ -1,4 +1,39 @@
-<?php  if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+/**
+ * Splint
+ *
+ * An open source package and dependency manager for Code Igniter (an open
+ * source application development framework for PHP).
+ *
+ * This content is released under the MIT License (MIT)
+ *
+ * Copyright (c) 2014 - 2019, British Columbia Institute of Technology
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @package	Splint
+ * @author  Splint Dev Team
+ * @license	https://opensource.org/licenses/MIT	MIT License
+ * @link	https://splint.cynobit.com
+ * @since	Version 0.0.1
+*/
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /**
  * [MY_Loader description]
@@ -6,10 +41,25 @@
 class MY_Loader extends CI_Loader {
 
   /**
-   * [splint description]
-   * @param  [type] $splint   [description]
-   * @param  array  $autoload [description]
-   * @return [type]           [description]
+   * splint  The funcnction that loads resources from a splint package.
+   *
+   * @param  string $splint   Package name (Splint or Identifier) of thee
+   *                          package to load resources from.
+   *
+   * @param  mixed  $autoload An assocative array of resources to load or a
+   *                          single string of the resource to load with the
+   *                          first character indicating the kind of resource to
+   *                          load. See http://splint.cynobit.com/wiki/load_splint
+   *
+   * @param  mixed   $params   (Optional) An associative array of key value pairs
+   *                           to pass to the constructor of a loaded class or as
+   *                           values to views, depending on the type of resource
+   *                           loaded.
+   *
+   * @param  string  $alias    The alias to be given to the loaded Class or Model.
+   *
+   * @return object            Returns a Splint object if only one argument is
+   *                           provided.
    */
   function splint($splint, $autoload = array(), $params = null, $alias = null) {
     $splint = trim($splint, '/');
