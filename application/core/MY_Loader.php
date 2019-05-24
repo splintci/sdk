@@ -45,21 +45,18 @@ class MY_Loader extends CI_Loader {
    *
    * @param  string $splint   Package name (Splint or Identifier) of thee
    *                          package to load resources from.
-   *
    * @param  mixed  $autoload An assocative array of resources to load or a
    *                          single string of the resource to load with the
    *                          first character indicating the kind of resource to
    *                          load. See http://splint.cynobit.com/wiki/load_splint
+   * @param  mixed   $params  (Optional) An associative array of key value pairs
+   *                          to pass to the constructor of a loaded class or as
+   *                          values to views, depending on the type of resource
+   *                          loaded.
+   * @param  string  $alias   (Optional) The alias to be given to the loaded Class or Model.
    *
-   * @param  mixed   $params   (Optional) An associative array of key value pairs
-   *                           to pass to the constructor of a loaded class or as
-   *                           values to views, depending on the type of resource
-   *                           loaded.
-   *
-   * @param  string  $alias    The alias to be given to the loaded Class or Model.
-   *
-   * @return object            Returns a Splint object if only one argument is
-   *                           provided.
+   * @return object           Returns a Splint object if only one argument is
+   *                          provided.
    */
   function splint($splint, $autoload = array(), $params = null, $alias = null) {
     $splint = trim($splint, '/');
@@ -200,10 +197,17 @@ class MY_Loader extends CI_Loader {
     return $loadedCount > 0;
   }
   /**
-   * [app description]
-   * @param  [type] $splint [description]
-   * @param  [type] $data   [description]
-   * @return [type]         [description]
+   * app Loads and renders a Splint Application, applications behave as required
+   *     based on the current URI.
+   *
+   * @param  string $splint The fully qualified name of the Splint Application
+   *                        Package to use.
+   * @param  mixed  $data   (Optional) An associative array of parameters to
+   *                        pass to the constructor of the controller called
+   *                        within the application.
+   *
+   * @return bool           Returns true on successful loading or false
+   *                        otherwise.
    */
   function app($splint, $data=null) {
     // Load App Router.
@@ -305,8 +309,10 @@ class MY_Loader extends CI_Loader {
     $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_end');
   }
   /**
-   * [_ci_autoloader description]
-   * @return [type] [description]
+   * [_ci_autoloader The Ripped Code Igniter autoloader modified at the bottom
+   *                 to load Splint packages.
+   *
+   * @return null
    */
   function _ci_autoloader() {
     if (file_exists(APPPATH.'config/autoload.php')) {
@@ -369,8 +375,10 @@ class MY_Loader extends CI_Loader {
   /**
    * [bind   creates a Splint object and optionally binds the object to a passed
    *         variable]
+   *
    * @param  string $splint Splint package name.
    * @param  object $bind   Optional variable to bind Splint object to.
+   *
    * @return object         [Optional] Returns a Splint oject if no argument is
    *                        passed for $bind.
    */
