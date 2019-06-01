@@ -291,6 +291,18 @@ class MY_Loader extends CI_Loader {
 		  $params = array_slice($ci->uri->apprsegments, 2);
 	  }
 
+    // Load Application Config if it exists.
+    if (is_file(APPPATH . "splints/$splint/splint.json")) {
+      $descriptor = json_decode(file_get_contents(APPPATH . "splints/$splint/splint.json"));
+      $config = isset($descriptor->config) && is_string($descriptor->config) ? $descriptor->config : null;
+      if ($config != null) {
+        $config = substr($config, 0, 1) == "@" ? substr($config, 1) : $config;
+        $this->config($config, true, true);
+        $params = $ci->config->item($config, $config);
+        $data = $data == null ? $params : array_merge($data, $params);
+      }
+    }
+
     // TODO: pre-hook
     //$EXT->call_hook('pre_controller');
 
