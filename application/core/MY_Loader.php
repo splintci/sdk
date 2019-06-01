@@ -317,6 +317,9 @@ class MY_Loader extends CI_Loader {
     // Call App Controller.
     call_user_func_array(array(&$APP, $method), $params);
 
+    // Closing function for convinience
+    if (method_exists($APP, "finalize")) $APP->finalize();
+
     // Mark an end point so we can benchmark the app controller
     $ci->benchmark->mark('app_controller_execution_time_( '.$class.' / '.$method.' )_end');
   }
