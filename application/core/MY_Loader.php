@@ -120,7 +120,7 @@ class MY_Loader extends CI_Loader {
     }
   }
   /**
-   * package This function loads a package by loading the resources specified in
+   * package This method loads a package by loading the resources specified in
    *         package descriptor as specified.
    *
    * @param  string $splint The qualified name of the Splint package e.g.
