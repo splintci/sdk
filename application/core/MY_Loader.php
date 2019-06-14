@@ -299,7 +299,8 @@ class MY_Loader extends CI_Loader {
         $config = substr($config, 0, 1) == "@" ? substr($config, 1) : $config;
         $this->config($config, true, true);
         $config_params = $ci->config->item($config, $config);
-        $data = $data == null ? $config_params : array_merge($data, $config_params);
+        $data = $data == null ? []: $data;
+        $data = $config_params == null || !$this->is_assoc($config_params) ? $data  : array_merge($data, $config_params);
       }
     }
 
