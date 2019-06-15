@@ -57,11 +57,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  */
 class SplintAppController {
 
-	protected $app;
+	protected $ci;
 
 	protected $params;
 
-	protected $splint;
+	public $splint;
 
 	/**
 	 * Reference to the CI singleton
@@ -77,7 +77,9 @@ class SplintAppController {
 	 */
 	public function __construct($splint, $params=null)	{
 
-		$this->app =& get_instance();
+		self::$instance =& $this;
+
+		$this->ci =& get_instance();
 
 		$this->splint = $splint;
 
@@ -87,8 +89,8 @@ class SplintAppController {
 		// Assign all the class objects that were instantiated by the
 		// bootstrap file (CodeIgniter.php) to local class variables
 		// so that CI can run as one big super object.
-		foreach (is_loaded() as $var => $class)	{
-      $this->$var =& load_class($class);
+		foreach (array_keys(is_loaded()) as $var)	{
+			$this->bind($var);
 		}
 
 		$this->load =& load_class('Loader', 'core');
@@ -102,6 +104,10 @@ class SplintAppController {
 		if (file_exists(APPPATH."splints/$splint/config/".ENVIRONMENT.'/autoload.php'))	{
 			include(APPPATH."splints/$splint/config/".ENVIRONMENT.'/autoload.php');
 		}
+
+		// Load Platform Helper.
+		$this->load->splint("splint/platform", "%platform");
+
     if (isset($autoload)) {
 			// Load any custom config file
 			if (isset($autoload['config']) && count($autoload['config']) > 0)	{
@@ -169,11 +175,26 @@ class SplintAppController {
 			$this->load->helper("url");
 		}
 
-		$this->load->splint("splint/platform", "%platform");
-
-		if (method_exists($this, "Initialize")) $this->Initialize();
+		if (method_exists($this, "initialize")) $this->initialize();
 
 		log_message('info', 'SplintAppController Class Initialized');
+	}
+	/**
+	 * [get_param description]
+	 * @param  [type]  $param   [description]
+	 * @param  boolean $default [description]
+	 * @return [type]           [description]
+	 */
+	public function fetch_param($param, $default=false) {
+		return isset($this->params[$param]) ? $this->params[$param] : $default;
+	}
+	/**
+	 * [set_param description]
+	 * @param [type] $param [description]
+	 * @param [type] $value [description]
+	 */
+	public function set_param($param, $value) {
+		$this->params[$param] = $value;
 	}
 	/**
 	 * [view description]
@@ -182,7 +203,7 @@ class SplintAppController {
 	 * @param  boolean $return [description]
 	 * @return [type]          [description]
 	 */
-	protected function view($view, $data=null, $return=false) {
+	public function view($view, $data=null, $return=false) {
 		if ($data == null) $data = array();
 		$data["splint"] = $this->splint;
 		$this->load->view("../splints/$this->splint/views/$view", $data, $return);
@@ -192,7 +213,7 @@ class SplintAppController {
 	 * @param  [type] $view [description]
 	 * @return [type]       [description]
 	 */
-	protected function view_path($view) {
+	public function view_path($view) {
 		return "../splints/$this->splint/views/$view";
 	}
 	/**
@@ -202,7 +223,7 @@ class SplintAppController {
 	 * @param  [type] $alias   [description]
 	 * @return [type]          [description]
 	 */
-	protected function library($library, $params=null, $alias=null) {
+	public function library($library, $params=null, $alias=null) {
 		$this->load->view("../splints/$this->splint/libraries/$library", $params, $alias);
 	}
 	/**
@@ -211,7 +232,7 @@ class SplintAppController {
 	 * @param  [type] $alias [description]
 	 * @return [type]        [description]
 	 */
-	protected function model($model, $alias=null) {
+	public function model($model, $alias=null) {
 		$this->load->view("../splints/$this->splint/models/$model", $alias);
 	}
 	/**
@@ -220,7 +241,32 @@ class SplintAppController {
 	 */
 	protected function bind() {
 		foreach (func_get_args() as $class)	{
-			$this->{$class} =& $this->app->{$class};
+			$this->{$class} =& $this->ci->{$class};
 		}
+	}
+	/**
+	 * [fill_params_in_array description]
+	 * @param  [type] $params [description]
+	 * @param  [type] $array  [description]
+	 * @return [type]         [description]
+	 */
+	protected function fill_params_in_array($params, &$array) {
+		foreach ($params as $param) {
+			if (isset($this->params[$param])) $array[$param] = $this->params[$param];
+		}
+	}
+	/**
+	 * [get_parent_uri description]
+	 * @return [type] [description]
+	 */
+	protected function parent_uri($uri=null) {
+		return $this->uri->segment(1) . "/" . $this->uri->segment(2) . ($this->uri->segment(2) != null ? "/" : "") . ($uri == null ? "" : $uri);
+	}
+	/**
+	 * [get_instance description]
+	 * @return [type] [description]
+	 */
+	public static function &get_instance() {
+		return self::$instance;
 	}
 }
