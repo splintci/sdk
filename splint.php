@@ -20,7 +20,7 @@ $server_prefix = file_exists("development") ? "http://localhost/" : "https://";
  * [$version description]
  * @var string
  */
-$version = "0.0.1";
+$version = "0.0.3";
 /**
  * [$nl description]
  * @var string
