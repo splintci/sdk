@@ -36,6 +36,11 @@ $user_agent = "Splint-Production-Client";
  * @var string
  */
 $app_folder = "application";
+/**
+ * [$installed_packages description]
+ * @var array
+ */
+$installed_packages = [];
 
 // =============================================================================
 // FIELDS - END
@@ -50,6 +55,19 @@ function printLine($str=null, $color="black") {
   echo "<font color=\"$color\">$str</font>" . $GLOBALS["nl"];
   ob_flush();
   flush();
+}
+/**
+ * [make_array_from_object_array description]
+ * @param  [type] $object   [description]
+ * @param  [type] $property [description]
+ * @return [type]           [description]
+ */
+function make_array_from_object_array($objects, $property) {
+  $values = [];
+  foreach ($objects as $object) {
+    $values[] = $object->{$property};
+  }
+  return $values;
 }
 /**
  * [downloadPackage description]
@@ -89,6 +107,7 @@ function installPackage($package) {
     die("Could not open package $package.");
   $zip->extractTo($GLOBALS["app_folder"] . "/splints/$package");
   $zip->close();
+  $GLOBALS["installed_packages"][] = $package;
 }
 /**
  * [installPackages description]
@@ -120,34 +139,42 @@ function installPackages($splints) {
       printLine($splint);
     }
   }
-  foreach ($packages as $package) {
-    if (in_array($package->identifier, $splints)) {
-      $to_install[] = $package;
-    } else {
-      $no_install[] = $package;
-    }
+
+  $to_install = $packages;
+
+  $valid_splints = make_array_from_object_array($to_install, "identifier");
+
+  foreach ($splints as $splint) {
+    if (!in_array($splint, $valid_splints)) $no_install[] = $splint;
   }
+
   if (count($no_install) > 0) {
     printLine("The following packages do not exist.", "orange");
     foreach ($no_install as $package) {
       printLine($package);
     }
-  }
-  foreach ($to_install as $package) {
-    printLine("Downloading package $package->identifier...");
-    $response = downloadPackage($package->identifier, $package->integrity);
-    if ($response === 0) die ("Package could not be downloaded.");
-    if ($response === false) die ("Package lacks integrity, possible MITM Attack.");
-    $GLOBALS["downloaded"][] = $package->identifier;
-    printLine("Done Downloading package $package->identifier.");
     printLine();
   }
   if (count($to_install) > 0) {
-    printLine("The following packages will be installed:");
+    printLine("Splint will download and install the following package(s):");
     foreach ($to_install as $package) {
       printLine("[*] $package->identifier");
     }
     printLine();
+
+    foreach ($to_install as $package) {
+      printLine("Downloading package $package->identifier...");
+      $response = downloadPackage($package->identifier, $package->integrity);
+      if ($response === 0) die ("Package could not be downloaded.");
+      if ($response === false) die ("Package lacks integrity, possible MITM Attack.");
+      $GLOBALS["downloaded"][] = $package->identifier;
+      printLine("Done Downloading package $package->identifier.");
+      printLine();
+    }
+
+    printLine("****Installing Packages****");
+    printLine();
+
     foreach($to_install as $package) {
       printLine("Installing $package->identifier...");
       installPackage($package->identifier);
@@ -168,11 +195,12 @@ function getDependencies($packages) {
     $path = $GLOBALS["app_folder"] . "/splints/" . $package->identifier .
     "/splint.json";
     if (is_file($path)) {
-      $descriptor = json_decode($path);
-      if (isset($descriptor->depends_on) && is_array($descriptor->depends_on)) {
-        foreach ($descriptor->depends_on as $dependency) {
+      $descriptor = json_decode(file_get_contents($path), true);
+      if (isset($descriptor["depends-on"]) && is_array($descriptor["depends-on"])) {
+        foreach ($descriptor["depends-on"] as $dependency) {
           preg_match("/(\w+)\/([a-zA-Z0-9_\-]+)/", $dependency, $matches);
           if ($matches[0] == $dependency) {
+            if (in_array($dependency, $GLOBALS["installed_packages"])) continue;
             printLine("Found dependency: $dependency.");
             printLine();
             $dependencies[] = $dependency;
@@ -233,16 +261,12 @@ install_splints: {
     if ($matches[0] != $splint) die ("Bad splint package pattern '$splint'");
     $valid_packages[] = $splint;
   }
-  printLine("Splint will download and install the following package(s):");
-  foreach ($valid_packages as $package) {
-    printLine($package);
-  }
-  printLine();
+
+  //printLine();
   $dependencies = getDependencies(installPackages($valid_packages));
   while (count($dependencies) > 0) {
     $dependencies = getDependencies(installPackages($dependencies));
   }
-  printLine();
   printLine("Cleaning Up...");
   cleanUp($downloaded);
   printLine();
