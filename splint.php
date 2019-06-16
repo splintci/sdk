@@ -203,31 +203,50 @@ function cleanUp($splints) {
 printLine("&#8224; <a href=\"https://splint.cynobit.com\" target=\"_blank\">Splint</a> Production
 Environment Package Manager v$version &#8224;", "teal");
 printLine();
-// A 'splint.json' file is required to execute this script further.
+
+$splints = null;
+
+if (isset($_GET["p"])) {
+  $splints = explode(" ", $_GET["p"]);
+  // GOTO directly to install_splints if 'p' is valid.
+  if (is_array($splints)) goto install_splints;
+}
+
 if (!is_file("splint.json")) die("Could not find a 'splint.json' file.");
+
 $data = json_decode(file_get_contents("splint.json"));
+
+if ($data == null) die("There was an error reading the JSON file.");
+
 if (!isset($data->install) || count($data->install) == 0) die("No packages found to install");
-if (!is_dir(__DIR__ . "/$app_folder")) die("Application folder not found.");
-$splints = $data->install;
-$valid_packages = array();
-$downloaded = array();
-foreach ($splints as $splint) {
-  preg_match("/(\w+)\/([a-zA-Z0-9_\-]+)/", $splint, $matches);
-  if ($matches[0] != $splint) die ("Bad splint package pattern '$splint'");
-  $valid_packages[] = $splint;
+
+install_splints: {
+
+  if (!is_dir(__DIR__ . "/$app_folder")) die("Application folder not found.");
+
+  if (isset($data)) $splints = $data->install;
+
+  $valid_packages = array();
+  $downloaded = array();
+  foreach ($splints as $splint) {
+    preg_match("/(\w+)\/([a-zA-Z0-9_\-]+)/", $splint, $matches);
+    if ($matches[0] != $splint) die ("Bad splint package pattern '$splint'");
+    $valid_packages[] = $splint;
+  }
+  printLine("Splint will download and install the following package(s):");
+  foreach ($valid_packages as $package) {
+    printLine($package);
+  }
+  printLine();
+  $dependencies = getDependencies(installPackages($valid_packages));
+  while (count($dependencies) > 0) {
+    $dependencies = getDependencies(installPackages($dependencies));
+  }
+  printLine();
+  printLine("Cleaning Up...");
+  cleanUp($downloaded);
+  printLine();
+  printLine("Done Installing Packages. :-)", "green");
+
 }
-printLine("Splint will download and install the following package(s):");
-foreach ($valid_packages as $package) {
-  printLine($package);
-}
-printLine();
-$dependencies = getDependencies(installPackages($valid_packages));
-while (count($dependencies) > 0) {
-  $dependencies = getDependencies(installPackages($dependencies));
-}
-printLine();
-printLine("Cleaning Up...");
-cleanUp($downloaded);
-printLine();
-printLine("Done Installing Packages. :-)", "green");
 ?>
