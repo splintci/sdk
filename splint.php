@@ -262,11 +262,11 @@ install_splints: {
     $valid_packages[] = $splint;
   }
 
-  //printLine();
   $dependencies = getDependencies(installPackages($valid_packages));
   while (count($dependencies) > 0) {
     $dependencies = getDependencies(installPackages($dependencies));
   }
+
   printLine("Cleaning Up...");
   cleanUp($downloaded);
   printLine();
