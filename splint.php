@@ -12,10 +12,10 @@
 // =============================================================================
 
 /**
- * [$server description]
+ * [$server_prefix description]
  * @var [type]
  */
-$server = file_exists("development") ? "http://localhost/" : "https://";
+$server_prefix = file_exists("development") ? "http://localhost/" : "https://";
 /**
  * [$version description]
  * @var string
@@ -58,7 +58,7 @@ function printLine($str=null, $color="black") {
  * @return [type]            [description]
  */
 function downloadPackage($package, $integrity) {
-  $url = "{$GLOBALS["server"]}splint.cynobit.com/index.php/SplintClient/downloadPackage";
+  $url = "{$GLOBALS["server_prefix"]}splint.cynobit.com/index.php/SplintClient/downloadPackage";
   $params = array("identifier" => $package);
   $options = array(
     "http" => array(
@@ -100,7 +100,7 @@ function installPackages($splints) {
   $no_install = array();
   $header = "Content-type: application/x-www-form-urlencoded\r\nUser-Agent:
     Splint-Production-Client\r\n";
-  $url = "{$GLOBALS["server"]}splint.cynobit.com/index.php/SplintClient/requestPackages";
+  $url = "{$GLOBALS["server_prefix"]}splint.cynobit.com/index.php/SplintClient/requestPackages";
   $params = array("identifiers" => implode(",", $splints));
   $options = array(
     "http" => array(
