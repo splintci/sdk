@@ -377,6 +377,10 @@ class MY_Loader extends CI_Loader {
     // Autoload splints
     if (isset($autoload["splint"])) {
       foreach ($autoload["splint"] as $splint => $res) {
+        if (!is_array($res)) {
+          $this->package($res);
+          continue;
+        }
         $this->splint($splint, isset($res[0]) ? $res[0] : array(),
         isset($res[1]) ? $res[1] : null, isset($res[2]) ? $res[2] : null);
       }
