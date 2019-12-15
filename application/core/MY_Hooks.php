@@ -20,6 +20,13 @@ class MY_Hooks extends CI_Hooks
   public function call_hook($which = '')
   {
     if ($which == 'post_controller_constructor' && isset($this->hooks['hookwares'])) {
+
+      if (isset($this->hooks['hookwares']['all'])) $this->run_hookware('all');
+
+      if (isset($this->hooks['hookwares']['root'])) $this->run_hookware('root');
+
+      if (isset($this->hooks['hookwares']['cli'])) $this->run_hookware('cli');
+
       if (count(get_instance()->router->hwgroups) > 0) {
         foreach (get_instance()->router->hwgroups as $groups => $value) {
           if (!$value) break;
@@ -50,14 +57,40 @@ class MY_Hooks extends CI_Hooks
     }
 
     if (substr($hookware, 0, 1) == '+' && isset($this->hooks['hookwares'][str_replace('+', '', $hookware)])) {
-      if (file_exists(APPPATH.'hookwares/'.$this->hooks['hookwares'][str_replace('+', '', $hookware)].'.php')) {
-        class_exists($this->hooks['hookwares'][str_replace('+', '', $hookware)], FALSE) OR require_once(APPPATH.'hookwares/'.$this->hooks['hookwares'][str_replace('+', '', $hookware)].'.php');
-        (new $this->hooks['hookwares'][str_replace('+', '', $hookware)](...array_slice(get_instance()->uri->rsegments, 2)))->handle($args ?? null);
-      } else {
-        throw new Exception('HookWare Class: '.str_replace('+', '', $hookware).' not found.');
-      }
+      if (!$this->run_hookware(str_replace('+', '', $hookware), $args ?? null)) throw new Exception('HookWare Class: '.str_replace('+', '', $hookware).' not found.');
     } else {
       throw new Exception('HookWare Key: '.str_replace('+', '', $hookware).' not found.');
     }
+  }
+  /**
+   * [run_hookware description]
+   * @date   2019-12-15
+   * @param  string     $hookware [description]
+   * @param  string     $args     [description]
+   * @return bool                 [description]
+   */
+  private function run_hookware(string $hookware, ?string $args=null):bool
+  {
+    if (file_exists(APPPATH.'hookwares/'.$this->hooks['hookwares'][$hookware].'.php')) {
+      class_exists($this->hooks['hookwares'][$hookware], FALSE) OR require_once(APPPATH.'hookwares/'.$this->hooks['hookwares'][$hookware].'.php');
+      $hookwareInstance = new $this->hooks['hookwares'][$hookware](...array_slice(get_instance()->uri->rsegments, 2));
+      return $this->eval_hookware_handle($hookwareInstance, $args);
+    }
+    return false;
+  }
+  /**
+   * [eval_hookware_handle description]
+   * @date   2019-12-15
+   * @param  HookWare   $hookwareInstance [description]
+   * @param  ?string    $args             [description]
+   * @return bool                         [description]
+   */
+  private function eval_hookware_handle(HookWare $hookwareInstance, ?string $args):bool
+  {
+    if (get_instance()->input->is_cli_request() && !$hookwareInstance->shouldHandleCLI()) return true;
+    if (in_array(get_instance()->router->mroute, $hookwareInstance->except())) return true;
+    if (!$hookwareInstance->shouldHandle(get_instance()->router->mroute)) return true;
+    $hookwareInstance->handle($args);
+    return true;
   }
 }

@@ -5,6 +5,7 @@ class MY_Router extends CI_Router
 {
   public $hwgroups = [];
   public $hookware;
+  public $mroute;
 
   /**
    * [_parse_routes description]
@@ -44,7 +45,10 @@ class MY_Router extends CI_Router
 				}
       }
 
-      if (preg_match('#^'.str_replace(array(':any', ':num'), array('[^/]+', '[0-9]+'), $key).'$#', $uri)) break;
+      if (preg_match('#^'.str_replace(array(':any', ':num'), array('[^/]+', '[0-9]+'), $key).'$#', $uri)) {
+        $this->mroute = str_replace(array('[^/]+', '[0-9]+'), array(':any', ':num'), $key);
+        break;
+      }
     }
 
     parent::_parse_routes();
