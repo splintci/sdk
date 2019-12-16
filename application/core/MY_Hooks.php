@@ -57,9 +57,9 @@ class MY_Hooks extends CI_Hooks
     }
 
     if (substr($hookware, 0, 1) == '+' && isset($this->hooks['hookwares'][str_replace('+', '', $hookware)])) {
-      if (!$this->run_hookware(str_replace('+', '', $hookware), $args ?? null)) throw new Exception('HookWare Class: '.str_replace('+', '', $hookware).' not found.');
+      if (!$this->run_hookware(str_replace('+', '', $hookware), $args ?? null)) show_error('HookWare Class: '.str_replace('+', '', $hookware).' not found.', 500);
     } else {
-      throw new Exception('HookWare Key: '.str_replace('+', '', $hookware).' not found.');
+      show_error('HookWare Key: '.str_replace('+', '', $hookware).' not found.', 500);
     }
   }
   /**
