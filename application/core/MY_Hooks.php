@@ -16,16 +16,16 @@ function hookware(string $class, string $path='hooks', $params=''):array
 
 class MY_Hooks extends CI_Hooks
 {
-  protected $loadedHookwares = [];
+  protected $loadedhookware = [];
   public function call_hook($which = '')
   {
-    if ($which == 'post_controller_constructor' && isset($this->hooks['hookwares'])) {
+    if ($which == 'post_controller_constructor' && isset($this->hooks['hookware'])) {
 
-      if (isset($this->hooks['hookwares']['all'])) $this->run_hookware('all');
+      if (isset($this->hooks['hookware']['all'])) $this->run_hookware('all');
 
-      if (isset($this->hooks['hookwares']['root'])) $this->run_hookware('root');
+      if (isset($this->hooks['hookware']['root'])) $this->run_hookware('root');
 
-      if (isset($this->hooks['hookwares']['cli'])) $this->run_hookware('cli');
+      if (isset($this->hooks['hookware']['cli'])) $this->run_hookware('cli');
 
       if (count(get_instance()->router->hwgroups) > 0) {
         foreach (get_instance()->router->hwgroups as $groups => $value) {
@@ -56,7 +56,7 @@ class MY_Hooks extends CI_Hooks
       $hookware = explode(':', $hookware)[0];
     }
 
-    if (substr($hookware, 0, 1) == '+' && isset($this->hooks['hookwares'][str_replace('+', '', $hookware)])) {
+    if (substr($hookware, 0, 1) == '+' && isset($this->hooks['hookware'][str_replace('+', '', $hookware)])) {
       if (!$this->run_hookware(str_replace('+', '', $hookware), $args ?? null)) show_error('HookWare Class: '.str_replace('+', '', $hookware).' not found.', 500);
     } else {
       show_error('HookWare Key: '.str_replace('+', '', $hookware).' not found.', 500);
@@ -71,9 +71,9 @@ class MY_Hooks extends CI_Hooks
    */
   private function run_hookware(string $hookware, ?string $args=null):bool
   {
-    if (file_exists(APPPATH.'hookwares/'.$this->hooks['hookwares'][$hookware].'.php')) {
-      class_exists($this->hooks['hookwares'][$hookware], FALSE) OR require_once(APPPATH.'hookwares/'.$this->hooks['hookwares'][$hookware].'.php');
-      $hookwareInstance = new $this->hooks['hookwares'][$hookware](...array_slice(get_instance()->uri->rsegments, 2));
+    if (file_exists(APPPATH.'hookware/'.$this->hooks['hookware'][$hookware].'.php')) {
+      class_exists($this->hooks['hookware'][$hookware], FALSE) OR require_once(APPPATH.'hookware/'.$this->hooks['hookware'][$hookware].'.php');
+      $hookwareInstance = new $this->hooks['hookware'][$hookware](...array_slice(get_instance()->uri->rsegments, 2));
       return $this->eval_hookware_handle($hookwareInstance, $args);
     }
     return false;
